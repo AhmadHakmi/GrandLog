@@ -15,3 +15,7 @@ class FuelLog(Base):
     fuel_price = Column(Float, nullable=False)
 
     odometer = Column(Integer, nullable=False)
+
+    @property
+    def total_cost(self):
+        return self.liters * self.fuel_price

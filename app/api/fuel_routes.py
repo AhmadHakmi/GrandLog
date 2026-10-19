@@ -1,15 +1,14 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
-from app.database.dependencies import get_db
-from app.schemas.fuel_schema import FuelLogCreate, FuelLogResponse
+from app.database.dependencies import DatabaseSession
+from app.schemas.fuel_schema import (
+    FuelEconomyResponse,
+    FuelLogCreate,
+    FuelLogResponse,
+)
 from app.services import fuel_service
 
 router = APIRouter(prefix="/fuel", tags=["Fuel"])
-
-DatabaseSession = Annotated[Session, Depends(get_db)]
 
 
 @router.post("/", response_model=FuelLogResponse)
@@ -22,6 +21,6 @@ def get_all_fuel_logs(db: DatabaseSession):
     return fuel_service.get_all_fuel_logs(db)
 
 
-@router.get("/analytics/{vehicle_id}")
+@router.get("/analytics/{vehicle_id}", response_model=FuelEconomyResponse)
 def calculate_fuel_economy(vehicle_id: int, db: DatabaseSession):
     return fuel_service.calculate_fuel_economy(db, vehicle_id)
