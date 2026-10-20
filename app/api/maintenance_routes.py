@@ -1,16 +1,10 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
-from app.database.dependencies import get_db
-from app.schemas.maintenance_schema import (MaintenanceCreate,
-                                            MaintenanceResponse)
+from app.database.dependencies import DatabaseSession
+from app.schemas.maintenance_schema import MaintenanceCreate, MaintenanceResponse
 from app.services import maintenance_service
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
-
-DatabaseSession = Annotated[Session, Depends(get_db)]
 
 
 @router.post("/", response_model=MaintenanceResponse)

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.database.session import Base
 
@@ -12,3 +13,6 @@ class Vehicle(Base):
     year = Column(Integer, nullable=False)
     nickname = Column(String)
     current_mileage = Column(Integer, default=0)
+
+    fuel_logs = relationship("FuelLog", cascade="all, delete-orphan")
+    maintenance_records = relationship("Maintenance", cascade="all, delete-orphan")

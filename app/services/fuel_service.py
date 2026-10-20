@@ -1,56 +1,39 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.repositories import fuel_repository
 from app.schemas.fuel_schema import FuelLogCreate
+from app.services import vehicle_service
 
 
 def create_fuel_log(db: Session, fuel_data: FuelLogCreate):
-    fuel_log = fuel_repository.create_fuel_log(db, fuel_data)
-
-    total_cost = fuel_log.liters * fuel_log.fuel_price
-
-    return {
-        "id": fuel_log.id,
-        "vehicle_id": fuel_log.vehicle_id,
-        "liters": fuel_log.liters,
-        "fuel_price": fuel_log.fuel_price,
-        "odometer": fuel_log.odometer,
-        "total_cost": total_cost,
-    }
+    vehicle_service.get_vehicle_by_id(db, fuel_data.vehicle_id)
+    return fuel_repository.create_fuel_log(db, fuel_data)
 
 
 def get_all_fuel_logs(db: Session):
-    logs = fuel_repository.get_all_fuel_logs(db)
-
-    result = []
-
-    for log in logs:
-        result.append(
-            {
-                "id": log.id,
-                "vehicle_id": log.vehicle_id,
-                "liters": log.liters,
-                "fuel_price": log.fuel_price,
-                "odometer": log.odometer,
-                "total_cost": log.liters * log.fuel_price,
-            }
-        )
-
-    return result
+    return fuel_repository.get_all_fuel_logs(db)
 
 
 def calculate_fuel_economy(db: Session, vehicle_id: int):
+    vehicle_service.get_vehicle_by_id(db, vehicle_id)
     logs = fuel_repository.get_vehicle_fuel_logs(db, vehicle_id)
 
     if len(logs) < 2:
-        return {"message": "Not enough fuel logs"}
+        raise HTTPException(status_code=422, detail="Not enough fuel logs")
 
     first_log = logs[0]
     last_log = logs[-1]
 
     distance = last_log.odometer - first_log.odometer
 
-    total_liters = sum(log.liters for log in logs)
+    # Full-tank method: the first fill was burned before the measured distance.
+    total_liters = sum(log.liters for log in logs[1:])
+
+    if distance <= 0 or total_liters <= 0:
+        raise HTTPException(
+            status_code=422, detail="Fuel logs do not cover any distance"
+        )
 
     fuel_economy = distance / total_liters
 

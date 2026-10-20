@@ -17,3 +17,7 @@ class Maintenance(Base):
     service_interval_km = Column(Integer, nullable=False)
 
     notes = Column(String, nullable=True)
+
+    @property
+    def next_service_due(self):
+        return self.last_service_mileage + self.service_interval_km

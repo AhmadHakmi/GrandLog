@@ -1,16 +1,10 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
-from app.database.dependencies import get_db
-from app.schemas.vehicle_schema import (VehicleCreate, VehicleResponse,
-                                        VehicleUpdate)
+from app.database.dependencies import DatabaseSession
+from app.schemas.vehicle_schema import VehicleCreate, VehicleResponse, VehicleUpdate
 from app.services import vehicle_service
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
-
-DatabaseSession = Annotated[Session, Depends(get_db)]
 
 
 @router.post("/", response_model=VehicleResponse)
